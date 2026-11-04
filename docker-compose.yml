@@ -1,0 +1,30 @@
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql        # ডেটাবেস ডেটা স্থায়ীভাবে থাকবে
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    depends_on:
+      - db
+    restart: unless-stopped
+    ports:
+      - "8080:80"                     # সাইট চলবে localhost:8080-এ
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_NAME: ${DB_NAME}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - wp_data:/var/www/html         # WordPress ফাইল, প্লাগইন, ছবি
+
+volumes:
+  db_data:
+  wp_data:
