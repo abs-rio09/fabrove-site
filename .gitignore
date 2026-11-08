@@ -1,2 +1,9 @@
 .env
 .playwright-mcp/
+
+# Backup archives must never be committed
+backups/
+*.sql
+*.sql.gz
+*.tar.gz
+*.partial
