@@ -78,8 +78,20 @@ mkdir -p "$BACKUP_DIR"
 chmod 700 "$BACKUP_DIR"
 umask 077   # backup files readable only by the current user
 
+# Clean up leftovers of earlier failed runs: *.partial files older than one
+# day (24h), directly in $BACKUP_DIR only. Only our own naming pattern
+# (db-*.sql.gz.partial / files-*.tar.gz.partial) is matched; a run that is in
+# progress right now is never older than a day, so it is never affected.
+while IFS= read -r -d '' f; do
+  log "Removing stale partial file: $(basename "$f")"
+  rm -f -- "$f"
+done < <(find "$BACKUP_DIR" -maxdepth 1 -type f \
+           \( -name 'db-*.sql.gz.partial' -o -name 'files-*.tar.gz.partial' \) \
+           -mmin +1440 -print0)
+
 # Write to *.partial first; rename only after success. A failed run therefore
-# leaves at most a *.partial file, which rotation never counts or deletes.
+# leaves at most a *.partial file; rotation never counts it, and the cleanup
+# above removes it once it is more than a day old.
 DB_TMP="$DB_FILE.partial"
 FILES_TMP="$FILES_FILE.partial"
 
